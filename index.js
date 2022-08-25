@@ -20,6 +20,7 @@ io.on("connection", (socket) => {
 
 db.on("open", () => {
 	const dbConnect = db.collection("users").watch();
+	const dbConnectTweet = db.collection("tweets").watch();
 
 	dbConnect.on("change", (change) => {
 		console.log(change);
@@ -29,8 +30,56 @@ db.on("open", () => {
 				username: change.fullDocument.username,
 				email: change.fullDocument.email,
 				password: change.fullDocument.password,
+				bio: change.fullDocument.bio,
+				profileImage: change.fullDocument.profileImage,
+				coverImage: change.fullDocument.coverImage,
+				following: change.fullDocument.following,
+				follower: change.fullDocument.follower,
+				reply: change.fullDocument.reply,
+				media: change.fullDocument.media,
+				createdAt: change.fullDocument.createdAt,
+				your_tweet: change.fullDocument.your_tweet,
 			};
-			io.emit("observer", file);
+			io.emit("observerUser", file);
+			console.log(file);
+		}
+	});
+});
+db.on("open", () => {
+	const dbConnectTweet = db.collection("tweets").watch();
+
+	dbConnectTweet.on("change", (change) => {
+		console.log(change);
+		if (change.operationType === "insert") {
+			const file = {
+				_id: change.fullDocument._id,
+				title: change.fullDocument.title,
+				tweetImage: change.fullDocument.tweetImage,
+				user: change.fullDocument.user,
+				like: change.fullDocument.like,
+				comment: change.fullDocument.comment,
+				share: change.fullDocument.share,
+				re_tweet: change.fullDocument.re_tweet,
+				createdAt: change.fullDocument.createdAt,
+			};
+			io.emit("observerTweet", file);
+			console.log("this is the tweet file", file);
+		}
+	});
+});
+db.on("open", () => {
+	const dbConnectComment = db.collection("comments").watch();
+
+	dbConnectComment.on("change", (change) => {
+		console.log(change);
+		if (change.operationType === "insert") {
+			const file = {
+				_id: change.fullDocument._id,
+				title: change.fullDocument.title,
+				user: change.fullDocument.user,
+				createdAt: change.fullDocument.createdAt,
+			};
+			io.emit("observerComment", file);
 			console.log(file);
 		}
 	});
@@ -39,6 +88,7 @@ db.on("open", () => {
 app.use(cors());
 app.use(express.json());
 app.use("/api/user", require("./Route/UserRoutes"));
+app.use("/api/tweet", require("./Route/TweetRoute"));
 
 server.listen(port, () => {
 	console.log(`listening on port ${port}`);

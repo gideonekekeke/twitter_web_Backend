@@ -17,7 +17,4 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage }).single("profileImage");
 const CoverUpload = multer({ storage: storage }).single("coverImage");
 
-module.exports = {
-	upload,
-	CoverUpload,
-};
+module.exports = upload;

@@ -5,11 +5,27 @@ const cloudinary = require("cloudinary").v2;
 const path = require("path");
 const getAllUsers = async (req, res) => {
 	try {
-		const getUsers = await userSchema.find();
+		const getUsers = await userSchema.find().populate("your_tweet");
 
 		res.status(200).json({
 			message: "successful",
 			data: getUsers,
+		});
+	} catch (err) {
+		res.status(404).json({
+			message: "an error occured",
+		});
+	}
+};
+const getSingleUsers = async (req, res) => {
+	try {
+		const getUser = await userSchema
+			.findById(req.params.id)
+			.populate("your_tweet");
+
+		res.status(200).json({
+			message: "successful",
+			data: getUser,
 		});
 	} catch (err) {
 		res.status(404).json({
@@ -34,6 +50,7 @@ const RegisterUser = async (req, res) => {
 			name,
 			username,
 			email,
+			bio: "enter your bio here",
 			password: hash,
 			profileImage: "https://i.stack.imgur.com/l60Hf.png",
 			coverImage:
@@ -135,8 +152,73 @@ const LoginUser = async (req, res) => {
 // 	}
 // };
 
+const EditImage = async (req, res) => {
+	try {
+		const EditData = await userSchema.findByIdAndUpdate(
+			req.params.id,
+			{
+				profileImage: req.body.profileImage,
+			},
+			{ new: true },
+		);
+		return res.status(201).json({
+			message: "successfull",
+			data: EditData,
+		});
+		// }
+	} catch (err) {
+		res.status(500).json({
+			msg: err.message,
+		});
+	}
+};
+const EditCoverImage = async (req, res) => {
+	try {
+		const EditData = await userSchema.findByIdAndUpdate(
+			req.params.id,
+			{
+				coverImage: req.body.coverImage,
+			},
+			{ new: true },
+		);
+		return res.status(201).json({
+			message: "successfull",
+			data: EditData,
+		});
+		// }
+	} catch (err) {
+		res.status(500).json({
+			msg: err.message,
+		});
+	}
+};
+const EditProfile = async (req, res) => {
+	try {
+		const EditData = await userSchema.findByIdAndUpdate(
+			req.params.id,
+			{
+				name: req.body.name,
+				bio: req.body.bio,
+			},
+			{ new: true },
+		);
+		return res.status(201).json({
+			message: "successfull",
+			data: EditData,
+		});
+		// }
+	} catch (err) {
+		res.status(500).json({
+			msg: err.message,
+		});
+	}
+};
 module.exports = {
 	getAllUsers,
 	RegisterUser,
 	LoginUser,
+	EditImage,
+	EditCoverImage,
+	EditProfile,
+	getSingleUsers,
 };
