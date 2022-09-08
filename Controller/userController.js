@@ -1,11 +1,17 @@
 const userSchema = require("../Models/UserModel");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const cloudinary = require("cloudinary").v2;
+const cloudinary = require("../Utils/cloudinary");
 const path = require("path");
 const getAllUsers = async (req, res) => {
 	try {
-		const getUsers = await userSchema.find().populate("your_tweet");
+		const getUsers = await userSchema
+			.find()
+			.populate("your_tweet")
+			.populate("follower")
+			.populate("following")
+			.limit(5)
+			.sort({ createdAt: "desc" });
 
 		res.status(200).json({
 			message: "successful",
@@ -21,7 +27,10 @@ const getSingleUsers = async (req, res) => {
 	try {
 		const getUser = await userSchema
 			.findById(req.params.id)
-			.populate("your_tweet");
+
+			.populate("your_tweet")
+			.populate("follower")
+			.populate("following");
 
 		res.status(200).json({
 			message: "successful",
@@ -62,7 +71,7 @@ const RegisterUser = async (req, res) => {
 		});
 		res.status(200).json({
 			message: "successful",
-			data: { regUser, token },
+			data: { ...regUser._doc, token },
 		});
 	} catch (err) {
 		res.status(404).json({
@@ -108,76 +117,35 @@ const LoginUser = async (req, res) => {
 	}
 };
 
-// const LoginUser = async (req, res) => {
-// 	try {
-// 		const { email, password } = req.body;
-
-// 		const user = await userSchema.findOne({ email: email });
-
-// 		if (user) {
-// 			const checkPassword = await bcrypt.compare(password, user.password);
-
-// 			if (checkPassword) {
-// 				const { password, ...info } = user._doc;
-
-// 				const token = jwt.sign(
-// 					{
-// 						_id: user._id,
-// 						email: user.email,
-// 					},
-// 					"TwiIteErBuIUldtOkeN",
-// 					{ expiresIn: "20m" },
-// 				);
-// 				return res.status(200).json({
-// 					message: "successful",
-// 					data: {
-// 						...info,
-// 						token,
-// 					},
-// 				});
-// 			} else {
-// 				return res.status(404).json({
-// 					message: "Authentication failed",
-// 				});
-// 			}
-// 		} else {
-// 			return res.status(404).json({
-// 				message: "Authentication failed",
-// 			});
-// 		}
-// 	} catch (err) {
-// 		return res.status(404).json({
-// 			message: "an error occured",
-// 		});
-// 	}
-// };
-
 const EditImage = async (req, res) => {
 	try {
+		const Image = await cloudinary.uploader.upload(req.file.path);
+
 		const EditData = await userSchema.findByIdAndUpdate(
 			req.params.id,
 			{
-				profileImage: req.body.profileImage,
+				profileImage: Image.secure_url,
 			},
 			{ new: true },
 		);
-		return res.status(201).json({
+		res.status(201).json({
 			message: "successfull",
 			data: EditData,
 		});
 		// }
 	} catch (err) {
-		res.status(500).json({
+		res.status(404).json({
 			msg: err.message,
 		});
 	}
 };
 const EditCoverImage = async (req, res) => {
 	try {
+		const Image = await cloudinary.uploader.upload(req.file.path);
 		const EditData = await userSchema.findByIdAndUpdate(
 			req.params.id,
 			{
-				coverImage: req.body.coverImage,
+				coverImage: Image.secure_url,
 			},
 			{ new: true },
 		);
@@ -194,11 +162,12 @@ const EditCoverImage = async (req, res) => {
 };
 const EditProfile = async (req, res) => {
 	try {
+		const { name, bio } = req.body;
 		const EditData = await userSchema.findByIdAndUpdate(
 			req.params.id,
 			{
-				name: req.body.name,
-				bio: req.body.bio,
+				name,
+				bio,
 			},
 			{ new: true },
 		);

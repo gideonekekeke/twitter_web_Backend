@@ -16,5 +16,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage }).single("profileImage");
 const CoverUpload = multer({ storage: storage }).single("coverImage");
+const TweetUpload = multer({ storage: storage }).single("tweetImage");
 
-module.exports = upload;
+module.exports = {
+	upload,
+	CoverUpload,
+	TweetUpload,
+};

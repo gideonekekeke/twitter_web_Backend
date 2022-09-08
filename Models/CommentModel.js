@@ -5,12 +5,13 @@ const commentSchema = mongoose.Schema(
 		title: {
 			type: String,
 		},
-		user: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "users",
-			},
-		],
+		userCommented: {
+			type: String,
+		},
+		user: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "tweets",
+		},
 	},
 	{
 		timestamps: true,
